@@ -2,20 +2,20 @@ pipeline {
     agent any
 
     environment {
-        APP_IMAGE = 'laravelweb'
-        APP_CONTAINER = 'laravelcoba'
-      
+        IMAGE_NAME = "laravelweb"
+        CONTAINER_APP = "laravelcoba"
+        CONTAINER_DB = "mysql"
     }
 
     stages {
         stage('Checkout Code') {
             steps {
-                echo "🔄 Checkout source code dari GitHub..."
+                echo "🔄 Checkout source code dari repo kamu..."
                 git branch: 'main', url: 'https://github.com/adityacahyo28/cc-web.git'
             }
         }
 
-        stage('Build Docker Images') {
+        stage('Build Docker Image') {
             steps {
                 echo "🏗️ Build Docker image Laravel dari Dockerfile..."
                 bat 'docker-compose build'
@@ -24,15 +24,16 @@ pipeline {
 
         stage('Run Docker Containers') {
             steps {
-                echo "🚀 Jalankan ulang container Laravel & MySQL..."
+                echo "🚀 Jalankan ulang container Laravel dan MySQL..."
                 bat '''
                 echo ==== HENTIKAN CONTAINER LAMA ====
-                docker stop %APP_CONTAINER% || echo "Container Laravel belum jalan"
-                docker rm %APP_CONTAINER% || echo "Container Laravel sudah dihapus"
-                docker stop %MYSQL_CONTAINER% || echo "Container MySQL belum jalan"
-                docker rm %MYSQL_CONTAINER% || echo "Container MySQL sudah dihapus"
+                docker stop %CONTAINER_APP% || echo "%CONTAINER_APP% tidak berjalan"
+                docker rm %CONTAINER_APP% || echo "%CONTAINER_APP% sudah dihapus"
 
-                echo ==== JALANKAN ULANG DENGAN DOCKER COMPOSE ====
+                docker stop %CONTAINER_DB% || echo "%CONTAINER_DB% tidak berjalan"
+                docker rm %CONTAINER_DB% || echo "%CONTAINER_DB% sudah dihapus"
+
+                echo ==== JALANKAN ULANG DOCKER COMPOSE ====
                 docker-compose down || exit 0
                 docker-compose up -d
 
@@ -42,9 +43,9 @@ pipeline {
             }
         }
 
-        stage('Verify Container Running') {
+        stage('Verify Laravel Running') {
             steps {
-                echo "🔍 Verifikasi Laravel container berjalan dengan benar..."
+                echo "🔍 Verifikasi Laravel container berjalan di port 8000..."
                 bat '''
                 echo ==== TUNGGU 20 DETIK SUPAYA CONTAINER SIAP ====
                 ping 127.0.0.1 -n 20 >nul
