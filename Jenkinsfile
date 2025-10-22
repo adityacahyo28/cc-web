@@ -3,8 +3,7 @@ pipeline {
 
     environment {
         IMAGE_NAME = "laravelweb"
-        CONTAINER_APP = "laravelcoba"
-      
+        CONTAINER_NAME = "laravelcoba"
     }
 
     stages {
@@ -15,29 +14,24 @@ pipeline {
             }
         }
 
-        stage('Build Docker Image') {
+        stage('Build Docker Images') {
             steps {
-                echo "🏗️ Build Docker image Laravel dari Dockerfile..."
-                bat '''
-                echo ==== MENAMBAHKAN SAFE DIRECTORY UNTUK GIT ====
-                git config --global --add safe.directory "%cd%"
-
-                echo ==== BUILD DOCKER COMPOSE TANPA CACHE ====
-                docker-compose build --no-cache
-                '''
+                echo "🏗  Build Docker images menggunakan docker-compose..."
+                bat 'docker-compose build'
             }
         }
 
         stage('Run Docker Containers') {
             steps {
-                echo "🚀 Jalankan ulang container Laravel dan MySQL..."
+                echo "🚀 Jalankan ulang container Laravel, Nginx, dan MySQL..."
                 bat '''
                 echo ==== HENTIKAN CONTAINER LAMA ====
-                docker stop %CONTAINER_APP% || echo "%CONTAINER_APP% tidak berjalan"
-                docker rm %CONTAINER_APP% || echo "%CONTAINER_APP% sudah dihapus"
-
-                docker stop %CONTAINER_DB% || echo "%CONTAINER_DB% tidak berjalan"
-                docker rm %CONTAINER_DB% || echo "%CONTAINER_DB% sudah dihapus"
+                docker stop laravel_app || echo "laravel_app tidak berjalan"
+                docker rm laravel_app || echo "laravel_app sudah dihapus"
+                docker stop nginx_server || echo "nginx_server tidak berjalan"
+                docker rm nginx_server || echo "nginx_server sudah dihapus"
+                docker stop mysql_db || echo "mysql_db tidak berjalan"
+                docker rm mysql_db || echo "mysql_db sudah dihapus"
 
                 echo ==== JALANKAN ULANG DOCKER COMPOSE ====
                 docker-compose down || exit 0
@@ -49,19 +43,19 @@ pipeline {
             }
         }
 
-        stage('Verify Laravel Running') {
+        stage('Verify Container Running') {
             steps {
-                echo "🔍 Verifikasi Laravel container berjalan di port 8000..."
+                echo "🔍 Verifikasi Laravel container berjalan dengan benar..."
                 bat '''
                 echo ==== TUNGGU 20 DETIK SUPAYA CONTAINER SIAP ====
                 ping 127.0.0.1 -n 20 >nul
 
                 echo ==== CEK KONEKSI KE LARAVEL ====
-                curl -I http://127.0.0.1:8000 || echo "⚠ Gagal akses Laravel di port 8000"
+                curl -I http://127.0.0.1:8080 || echo "⚠ Gagal akses Laravel di port 8081"
                 
                 echo.
                 echo ==== ISI HALAMAN (HARUSNYA MUNCUL HALAMAN LARAVEL) ====
-                curl http://127.0.0.1:8000 || echo "⚠ Gagal ambil isi halaman"
+                curl http://127.0.0.1:8080 || echo "⚠ Gagal ambil isi halaman"
                 echo ===============================
                 '''
             }
@@ -70,14 +64,10 @@ pipeline {
 
     post {
         success {
-            echo '✅ Laravel berhasil dijalankan via Docker Compose di port 8000!'
+            echo '✅ Laravel berhasil dijalankan via Docker Compose di port 8081!'
         }
         failure {
             echo '❌ Build gagal, cek log Jenkins console output.'
-        }
-        always {
-            echo "🧹 Membersihkan cache Docker..."
-            bat 'docker system prune -f'
         }
     }
 }
