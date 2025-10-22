@@ -18,7 +18,13 @@ pipeline {
         stage('Build Docker Image') {
             steps {
                 echo "🏗️ Build Docker image Laravel dari Dockerfile..."
-                bat 'docker-compose build'
+                bat '''
+                echo ==== MENAMBAHKAN SAFE DIRECTORY UNTUK GIT ====
+                git config --global --add safe.directory "%cd%"
+
+                echo ==== BUILD DOCKER COMPOSE TANPA CACHE ====
+                docker-compose build --no-cache
+                '''
             }
         }
 
@@ -68,6 +74,10 @@ pipeline {
         }
         failure {
             echo '❌ Build gagal, cek log Jenkins console output.'
+        }
+        always {
+            echo "🧹 Membersihkan cache Docker..."
+            bat 'docker system prune -f'
         }
     }
 }
