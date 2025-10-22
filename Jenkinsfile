@@ -2,15 +2,15 @@ pipeline {
     agent any
 
     environment {
-        IMAGE_NAME = "laravel-app"
-        CONTAINER_NAME = "laravel_app"
+        IMAGE_NAME = "laravel-gua"
+        CONTAINER_NAME = "laravel_gua"
     }
 
     stages {
         stage('Checkout Code') {
             steps {
                 echo "🔄 Checkout source code dari repo kamu..."
-                git branch: 'main', url: 'https://github.com/Farrell354/komputasi-awan-docker.git'
+                git branch: 'main', url: 'https://github.com/adityacahyo28/cc-web.git'
             }
         }
 
