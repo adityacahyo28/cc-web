@@ -4,7 +4,7 @@ pipeline {
     environment {
         APP_IMAGE = 'laravelweb'
         APP_CONTAINER = 'laravelcoba'
-        MYSQL_CONTAINER = 'mysqlweb'
+      
     }
 
     stages {
