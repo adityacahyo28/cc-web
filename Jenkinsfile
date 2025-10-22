@@ -2,8 +2,8 @@ pipeline {
     agent any
 
     environment {
-        IMAGE_NAME = "laravel-gua"
-        CONTAINER_NAME = "laravel_gua"
+        image: laravelweb
+    container_name: laravelcoba
     }
 
     stages {
@@ -55,7 +55,7 @@ pipeline {
                 
                 echo.
                 echo ==== ISI HALAMAN (HARUSNYA MUNCUL HALAMAN LARAVEL) ====
-                curl http://127.0.0.1:8081 || echo "⚠ Gagal ambil isi halaman"
+                curl http://127.0.0.1:8080 || echo "⚠ Gagal ambil isi halaman"
                 echo ===============================
                 '''
             }
@@ -64,7 +64,7 @@ pipeline {
 
    post {
         success {
-            echo '✅ Laravel berhasil dijalankan via Docker Compose di port 8081!'
+            echo '✅ Laravel berhasil dijalankan via Docker Compose di port 8000!'
         }
         failure {
             echo '❌ Build gagal, cek log Jenkins console output.'
