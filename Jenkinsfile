@@ -2,38 +2,37 @@ pipeline {
     agent any
 
     environment {
-        image: laravelweb
-    container_name: laravelcoba
+        APP_IMAGE = 'laravelweb'
+        APP_CONTAINER = 'laravelcoba'
+        MYSQL_CONTAINER = 'mysqlweb'
     }
 
     stages {
         stage('Checkout Code') {
             steps {
-                echo "🔄 Checkout source code dari repo kamu..."
+                echo "🔄 Checkout source code dari GitHub..."
                 git branch: 'main', url: 'https://github.com/adityacahyo28/cc-web.git'
             }
         }
 
         stage('Build Docker Images') {
             steps {
-                echo "🏗  Build Docker images menggunakan docker-compose..."
+                echo "🏗️ Build Docker image Laravel dari Dockerfile..."
                 bat 'docker-compose build'
             }
         }
 
         stage('Run Docker Containers') {
             steps {
-                echo "🚀 Jalankan ulang container Laravel, Nginx, dan MySQL..."
+                echo "🚀 Jalankan ulang container Laravel & MySQL..."
                 bat '''
                 echo ==== HENTIKAN CONTAINER LAMA ====
-                docker stop laravel_app || echo "laravel_app tidak berjalan"
-                docker rm laravel_app || echo "laravel_app sudah dihapus"
-                docker stop nginx_server || echo "nginx_server tidak berjalan"
-                docker rm nginx_server || echo "nginx_server sudah dihapus"
-                docker stop mysql_db || echo "mysql_db tidak berjalan"
-                docker rm mysql_db || echo "mysql_db sudah dihapus"
+                docker stop %APP_CONTAINER% || echo "Container Laravel belum jalan"
+                docker rm %APP_CONTAINER% || echo "Container Laravel sudah dihapus"
+                docker stop %MYSQL_CONTAINER% || echo "Container MySQL belum jalan"
+                docker rm %MYSQL_CONTAINER% || echo "Container MySQL sudah dihapus"
 
-                echo ==== JALANKAN ULANG DOCKER COMPOSE ====
+                echo ==== JALANKAN ULANG DENGAN DOCKER COMPOSE ====
                 docker-compose down || exit 0
                 docker-compose up -d
 
@@ -51,18 +50,18 @@ pipeline {
                 ping 127.0.0.1 -n 20 >nul
 
                 echo ==== CEK KONEKSI KE LARAVEL ====
-                curl -I http://127.0.0.1:8081 || echo "⚠ Gagal akses Laravel di port 8081"
+                curl -I http://127.0.0.1:8000 || echo "⚠ Gagal akses Laravel di port 8000"
                 
                 echo.
                 echo ==== ISI HALAMAN (HARUSNYA MUNCUL HALAMAN LARAVEL) ====
-                curl http://127.0.0.1:8080 || echo "⚠ Gagal ambil isi halaman"
+                curl http://127.0.0.1:8000 || echo "⚠ Gagal ambil isi halaman"
                 echo ===============================
                 '''
             }
         }
     }
 
-   post {
+    post {
         success {
             echo '✅ Laravel berhasil dijalankan via Docker Compose di port 8000!'
         }
