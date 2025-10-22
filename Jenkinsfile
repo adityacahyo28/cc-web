@@ -62,12 +62,12 @@ pipeline {
         }
     }
 
-    post {
+   post {
         success {
             echo '✅ Laravel berhasil dijalankan via Docker Compose di port 8081!'
         }
         failure {
             echo '❌ Build gagal, cek log Jenkins console output.'
-        }
-    }
+        }
+    }
 }
